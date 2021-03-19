@@ -1,0 +1,17 @@
+{
+    "pager": {
+        "url": "http://127.0.0.1:3000/api/message/advanced",
+        "params": {
+            "type": "simple",
+            "routing": {
+                "device": "generic",
+                "connectors": [
+                    [ "pocsag", "77174D" ]
+                ]
+            }
+        }
+    },
+    "handling": {
+        "default": "[subject] - [from]"
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "msg-email",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smartpager-network/msg-email.git"
+  },
+  "author": "catSIXe",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/smartpager-network/msg-email/issues"
+  },
+  "homepage": "https://github.com/smartpager-network/msg-email#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "imap-simple": "^5.0.0",
+    "mailparser": "^3.1.0",
+    "node-imap": "^0.9.6"
+  }
+}
