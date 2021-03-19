@@ -33,7 +33,6 @@ async function processMail(mail) {
   payload = payload.replace("[from]", mail.from.text)
   payload = payload.replace("[fromName]", mail.from.value.name)
   payload = payload.replace("[fromAddress]", mail.from.value.address)
-  console.log(mail.from.value)
   sendPage(payload)
 }
 function ScanUnread() {
