@@ -6,7 +6,7 @@
             "routing": {
                 "device": "generic",
                 "connectors": [
-                    [ "pocsag", "77174D" ]
+                    [ "pocsag", "77174A" ]
                 ]
             }
         }

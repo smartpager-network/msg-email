@@ -14,7 +14,7 @@ const fetchOptions = {
   markSeen: false,
   struct: true,
 }
-
+const ignoreImapIDs = []
 function main() {
   ImapSimple
   .connect(config)
@@ -31,7 +31,7 @@ async function processMail(mail) {
   let payload = config.handling[handling]
   payload = payload.replace("[subject]", mail.subject)
   payload = payload.replace("[from]", mail.from.text)
-  payload = payload.replace("[fromName]", mail.from.value.name)
+  payload = payload.replace("[fromName]", mail.from.value.name || mail.from.value.address)
   payload = payload.replace("[fromAddress]", mail.from.value.address)
   sendPage(payload)
 }
@@ -43,6 +43,8 @@ function ScanUnread() {
     for (let mail of emails) {
       const all = mail.parts.filter(x=>x.which=='')[0]
       const idHeader = `Imap-Id: ${ mail.attributes.uid }\r\n`
+      if (ignoreImapIDs.indexOf(mail.attributes.uid) > -1) continue // Skip already notified mails
+      ignoreImapIDs.push(mail.attributes.uid)
       mailparser.simpleParser(idHeader + all.body).then(processMail)
     }
   })
