@@ -6,12 +6,16 @@
             "routing": {
                 "device": "generic",
                 "connectors": [
-                    [ "pocsag", "77174A" ]
+                    [ "pocsag", "133701D" ]
                 ]
             }
         }
     },
     "handling": {
-        "default": "[subject] - [from]"
+        "onlySimpleCounter": false,
+        "onlySimpleCounterFormat": "[unreadCount] ongelezen emails",
+        "processing": {
+            "default": "[subject] - [from]"
+        }
     }
 }
