@@ -2,11 +2,15 @@
     "pager": {
         "url": "http://127.0.0.1:3000/api/message/advanced",
         "params": {
-            "type": "simple",
+            "type": "duplex",
             "routing": {
-                "device": "generic",
+                "device": "birdyslim",
                 "connectors": [
-                    [ "pocsag", "133701D" ]
+                    [ "dapnet", "dl-all#DXxxx" ],
+                    [ "ecityruf", "2900000" ],
+                    [ "dapnet", "dl-all#DLxxx" ],
+                    [ "pocsag", "133701D" ],
+                    [ "dummy", "works" ]
                 ]
             }
         }
@@ -14,8 +18,11 @@
     "handling": {
         "onlySimpleCounter": false,
         "onlySimpleCounterFormat": "[unreadCount] ongelezen emails",
-        "processing": {
-            "default": "[subject] - [from]"
-        }
+        "processing": [
+            { "subjectContains": "data transferred" , "format": "[subject] - CF" },
+            { "mxdomainExact": "spamdomein.tld" , "ignore": true },
+            { "mxdomainContains": "paypal.nl" , "format": "PP: [subject]" },
+            { "ignore": true }
+        ]
     }
 }
