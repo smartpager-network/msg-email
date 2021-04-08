@@ -18,6 +18,7 @@
   "homepage": "https://github.com/smartpager-network/msg-email#readme",
   "dependencies": {
     "axios": "^0.21.1",
+    "express": "^4.17.1",
     "imap-simple": "^5.0.0",
     "mailparser": "^3.1.0",
     "node-imap": "^0.9.6"

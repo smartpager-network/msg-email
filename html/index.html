@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>E-Mail Module Configuration</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar app>
+                <v-toolbar-title>
+                    E-Mail Module Configuration
+                </v-toolbar-title>
+            </v-app-bar>
+            <v-content>
+                <v-form>
+                    <v-tabs v-model="configTab" next-icon="mdi-arrow-right-bold-box-outline" prev-icon="mdi-arrow-left-bold-box-outline" show-arrows>
+                        <v-tabs-slider></v-tabs-slider>
+                        <v-tab key="credentials">IMAP Credentials</v-tab>
+                        <v-tab key="mailProcessing">Mail Processing Chain</v-tab>
+                        <v-tab key="notificationConfig">Notification Configuration</v-tab>
+                    </v-tabs>
+                    <v-tabs-items v-model="configTab">
+                        <v-tab-item key="credentials">
+                            <v-container>
+                                <v-row>
+                                    <v-col cols="12" sm="12" md="6">
+                                    <v-text-field label="Username" v-model="credentialsData.user"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="12" sm="12" md="6">
+                                    <v-text-field label="Password" type="password" v-model="credentialsData.password"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col cols="12" sm="12" md="6">
+                                    <v-text-field label="Host" v-model="credentialsData.host"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="6" sm="4" md="2">
+                                        <v-checkbox label="TLS" v-model="credentialsData.tls"></v-checkbox>
+                                    </v-col>
+                                    <v-col cols="6" sm="4" md="2">
+                                        <v-text-field label="Port" min="1" max="65535" type="number" v-model="credentialsData.port"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-btn color="success" @click="storeCredentials()">Store Credentials & Restart</v-btn>
+                                </v-row>
+                            </v-container>
+                        </v-tab-item>
+                        <v-tab-item key="mailProcessing">
+                            <v-container>
+                                <v-row>
+                                    <v-col cols="12" sm="12" md="12">
+                                        <v-checkbox label="Dont process, only send a unread Email Counter" v-model="configData.handling.onlySimpleCounter"></v-checkbox>
+                                        <pre>possible Placeholders: [from] [fromName] [fromAddress] [subject]</pre>
+                                        <v-text-field label="Unread Mail Notification Format" v-model="configData.handling.onlySimpleCounterFormat"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <p>Processing Chain:</p>
+                                <v-row>
+                                    <v-btn color="success" @click="addProcessingCMD()">Add</v-btn>
+                                </v-row>
+                                <v-row v-for="(processingCmd, index) in configData.handling.processing" :key="processingCmd._id" style="border-bottom: 2px solid black;">
+                                    <pre>Index: {{ index }}</pre>
+                                    <v-col cols="12" sm="12" md="12">
+                                        <v-checkbox label="Ignore/Breakpoint" v-model="processingCmd.ignore"></v-checkbox>
+                                        <v-btn color="error" @click="configData.handling.processing.splice(index, 1)" icon><v-icon>mdi-delete</v-icon></v-btn>
+                                        <v-btn color="warning" :disabled="index == 0" @click="moveProcessingCMD(index, true)" icon>
+                                            <v-icon>mdi-arrow-up</v-icon>
+                                        </v-btn>
+                                        <v-btn color="warning" :disabled="index == configData.handling.processing.length" @click="moveProcessingCMD(index, false)" icon>
+                                            <v-icon>mdi-arrow-down</v-icon>
+                                        </v-btn>
+                                    </v-col>
+                                    <v-col cols="12" sm="12" md="12">
+                                        <pre>possible Placeholders: [from] [fromName] [fromAddress] [subject]</pre>
+                                    <v-text-field v-model="processingCmd.format" label="Format"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="6" sm="6" md="4">
+                                    <v-text-field v-model="processingCmd.subjectContains" label="Subject Contains (leave empty if unused)"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="6" sm="6" md="4">
+                                    <v-text-field v-model="processingCmd.mxdomainExact" label="MXDomain Equals (leave empty if unused)"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="6" sm="6" md="4">
+                                    <v-text-field v-model="processingCmd.mxdomainContains" label="MXDomain Contains (leave empty if unused)"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-btn color="success" @click="storeConfig()">Store & Restart</v-btn>
+                                </v-row>
+                            </v-container>
+                        </v-tab-item>
+                        <v-tab-item key="notificationConfig">
+                            <v-container>
+                                <b>Routing Paramters:</b>
+                                <v-row>
+                                <v-col cols="12" sm="12" md="6">
+                                    <v-text-field label="Daemon Endpoint URL" v-model="configData.pager.url"></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6">
+                                    <v-select :items="pagerTypes" v-model="configData.pager.params.type" item-text="k" item-value="v" label="Delivery Type"></v-select>
+                                </v-col>
+                                </v-row>
+                                <v-row>
+                                <v-col cols="12" sm="12" md="6">
+                                    <v-select :items="deviceType" v-model="configData.pager.params.routing.device" item-text="k" item-value="v" label="Device"></v-select>
+                                </v-col>
+                                </v-row>
+                                <b>Delivery Targets:</b>
+                                <v-btn color="success" @click="addDeliveryTarget()">Add</v-btn>
+                                <v-row v-for="(connector, index) in configData.pager.params.routing.connectors" :key="index">
+                                <v-col cols="6" sm="4" md="4">
+                                    <v-text-field v-model="connector[0]" label="Connector Name"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="6" sm="4" md="4">
+                                    <v-text-field v-model="connector[1]" label="Connector Param"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="6" sm="4" md="4">
+                                    <v-btn color="error" @click="configData.pager.params.routing.connectors.splice(index, 1)" icon><v-icon>mdi-delete</v-icon></v-btn>
+                                </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-btn color="success" @click="storeConfig()">Store & Restart</v-btn>
+                                </v-row>
+                            </v-container>
+                        </v-tab-item>
+                    </v-tabs-items>
+                </v-form>
+            </v-content>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            vuetify: new Vuetify(),
+            http: { root: '/' },
+            data() {
+                return {
+                    configTab: null,
+                    pagerTypes: [
+                        {k: 'Simple', v: 'simple'},
+                        {k: 'Duplex', v: 'duplex'},
+                    ],
+                    deviceType: [
+                        {k: 'Generic', v: 'generic'},
+                        {k: 'Birdy Slim (IoT)', v: 'birdyslim'},
+                    ],
+                    configData: {
+                        "pager": {
+                            "url": "",
+                            "params": {
+                                "type": "",
+                                "routing": {
+                                    "device": "",
+                                    "connectors": []
+                                }
+                            }
+                        },
+                        "handling": {
+                            "onlySimpleCounter": false,
+                            "onlySimpleCounterFormat": "[unreadCount] ongelezen emails",
+                            "processing": []
+                        }
+                    },
+                    credentialsData: {},
+                }
+            },
+            created() {
+                this.loadConfig()
+            },
+            methods: {
+                moveProcessingCMD(index, down) {
+                    let entry = this.configData.handling.processing.splice(index, 1)[ 0 ]
+                    console.log(entry)
+                    this.configData.handling.processing.splice(index + (down ? -1 : 1), 0, entry)
+                },
+                loadConfig() {
+                    this.$http.get('/config').then(response => {
+                        const newConfig = response.body
+                        newConfig.handling.processing = newConfig.handling.processing.map((x) => {
+                            x._id = btoa(JSON.stringify(x))
+                            return x
+                        })
+                        this.configData = newConfig
+                    }, response => {
+                    })
+                    this.$http.get('/credentials').then(response => {
+                        this.credentialsData = response.body
+                    }, response => {
+                    })
+                },
+                storeConfig() {
+                    const storeConfig = JSON.parse(JSON.stringify(this.configData))
+                    storeConfig.handling.processing = storeConfig.handling.processing.map(x => {
+                        let y = { }
+                        if (!!x.ignore && x.ignore == true) y.ignore = true
+                        if (!!x.format && x.format.length > 0) y.format = x.format
+                        for (n of ['format', 'subjectContains', 'mxdomainExact', 'mxdomainContains']) // only copy if not empty
+                            if (!!x[n] && x[n].length > 0) y[n] = x[n]
+                        return y
+                    })
+                    this.$http.post('/config', storeConfig).then(response => {
+                    })
+                    .then(this.$http.post('/restart'))
+                    .then(() => {
+                        document.body.style = 'display:none'
+                        setTimeout(() => window.location.reload(), 1e3)
+                    })
+                },
+                storeCredentials() {
+                    this.$http.post('/credentials', this.credentialsData).then(response => {
+                    })
+                    .then(this.$http.post('/restart'))
+                    .then(() => {
+                        document.body.style = 'display:none'
+                        setTimeout(() => window.location.reload(), 1e3)
+                    })
+                },
+                addDeliveryTarget() {
+                    this.configData.pager.params.routing.connectors.push(["connectorName","connectorParam"])
+                },
+                addProcessingCMD() {
+                    this.configData.handling.processing.push({
+                        format: "",
+                        ignore: false,
+                        mxdomainExact: "",
+                        mxdomainContains: "",
+                        subjectContains: "",
+                    })
+                },
+            }
+        })
+    </script>
+</body>
+
+</html>

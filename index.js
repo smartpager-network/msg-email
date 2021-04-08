@@ -1,11 +1,12 @@
 const ImapSimple = require('imap-simple')
 const mailparser = require('mailparser')
+const fs = require('fs')
+if (!fs.existsSync('./credentials.json')) fs.copyFileSync('./credentials.default.json', './credentials.json')
 let $ImapConnection
 
 const config = require('./config.json')
 config.imap = require('./credentials.json')
 //config.onmail = () => ScanUnread()
-
 const axios = require('axios')
 
 const searchCriteria = ['UNSEEN']
@@ -68,3 +69,40 @@ function ScanUnread() {
 		})
 }
 main()
+
+
+
+
+
+
+
+
+const express = require('express')
+const appConfig = express()
+appConfig.use(express.json())
+appConfig.use(express.static('html'))
+
+/** CONFIG Routes */
+
+appConfig.get('/config', async (req, res) => {
+    return res.json(JSON.parse(fs.readFileSync('config.json')))
+})
+appConfig.post('/config', async (req, res) => {
+    if (!(!!req.body.pager)) return res.status(403).json(false)
+    if (!(!!req.body.handling)) return res.status(403).json(false)
+    console.log(req.body)
+    fs.writeFileSync('config.json', JSON.stringify(req.body, null, "\t"))
+    return res.json(true)
+})
+appConfig.get('/credentials', async (req, res) => {
+    return res.json(JSON.parse(fs.readFileSync('credentials.json')))
+})
+appConfig.post('/credentials', async (req, res) => {
+    fs.writeFileSync('credentials.json', JSON.stringify(req.body, null, "\t"))
+    return res.json(true)
+})
+appConfig.post('/restart', (req, res) => {
+    process.exit(1)
+})
+
+appConfig.listen(3010)
